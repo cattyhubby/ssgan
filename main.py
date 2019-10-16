@@ -27,8 +27,8 @@ lr_d=1e-4
 power=0.9
 weight_decay=5e-4
 max_iter=20000
-dataset_path=r'**/Dataset/hdf5/f5.hdf5'
-dataset_nl_path=r'**/Dataset/hdf5/f2.hdf5'
+dataset_path=r'**/Dataset/hdf5/f5.hdf5' # labelled data
+dataset_nl_path=r'**/Dataset/hdf5/f2.hdf5' # unlabelled data
 save_path=r'**/Pytorch_Code/ALL/ssgan/'
 
 #loss_s_path=os.path.join(save_path,'loss.npy')
@@ -41,20 +41,21 @@ def lr_poly(base_lr,iters,max_iter,power):
     return base_lr*((1-float(iters)/max_iter)**power)
 def adjust_lr(optimizer,base_lr,iters,max_iter,power):
     lr=lr_poly(base_lr,iters,max_iter,power)
-    optimizer.param_groups[0]['lr']=lr
+    optimizer.param_groups[0]['lr']=lr # replace the new lr for optimizer
     if len(optimizer.param_groups)>1:
-        optimizer.param_groups[1]['lr']=lr*10
+        optimizer.param_groups[1]['lr']=lr*10 # what is this?
 
 ################### dataset loader ###################
-img_transform=transforms.ToTensor()#  hwc=>chw and 0-255=>0-1
-dataset=batch_data.Data(dataset_path,transform=img_transform,augmentation=False)
+img_transform=transforms.ToTensor() #  hwc=>chw and 0-255=>0-1 define transform first
+
+dataset=batch_data.Data(dataset_path,transform=img_transform,augmentation=False) # for labelled data
 trainloader=data.DataLoader(dataset,batch_size=batch_size,shuffle=True,num_workers=3)
 
-dataset_nl=batch_data.data(dataset_nl_path,transform=img_transform)
+dataset_nl=batch_data.data(dataset_nl_path,transform=img_transform) # for unlabelled data
 trainloader_nl=data.DataLoader(dataset_nl,batch_size=batch_size,shuffle=True,num_workers=3)
 
-trainloader_iter=enumerate(trainloader)
-trainloader_nl_iter=enumerate(trainloader_nl)
+trainloader_iter=enumerate(trainloader) # labelled
+trainloader_nl_iter=enumerate(trainloader_nl) # unlabelled
 
 ################### build model ###################
 model_g = generator(3)
@@ -82,8 +83,11 @@ optimizer_d=torch.optim.Adam(model_d.parameters(),lr=lr_d,betas=(0.9,0.99),weigh
 
 ################### iter train ###################
 for iters in range(max_iter):
-    loss_g_v=0
-    loss_d_v=0
+    loss_g_v=0 # total loss for G
+    loss_d_v=0 # total loss for D
+    
+    # trainloader_iter=enumerate(trainloader) # labelled
+    # trainloader_nl_iter=enumerate(trainloader_nl) # unlabelled
     
     ####### train D ##################
     optimizer_d.zero_grad()
@@ -107,33 +111,36 @@ for iters in range(max_iter):
         trainloader_nl_iter=enumerate(trainloader_nl)
         _,batch_nl=next(trainloader_nl_iter)
     
-    images_nl=batch_nl
+    images_nl=batch_n1
     images_nl=Variable(images_nl).cuda()
-    if images.shape[0] != images_nl.shape[0]:
+    
+    # 
+    if images.shape[0] != images_nl.shape[0]:  # why is this 
         continue
     # noise data
-    noise = torch.rand([images.shape[0],50*50]).uniform_().cuda()
+    noise = torch.rand([images.shape[0],50*50]).uniform_().cuda() # here the author use 2nd G model with input 50*50
     # predict
-    pred_labeled = model_d(images)
-    pred_unlabel = model_d(images_nl)
-    pred_fake    = model_d( model_g(noise) )
-    # compute loss
-    loss_labeled = Loss_label(pred_labeled,labels)
+    pred_labeled = model_d(images) # D on label images
+    pred_unlabel = model_d(images_nl) # D on unlabel images
+    pred_fake    = model_d( model_g(noise) ) # D on noise
+    # compute loss 
+    loss_labeled = Loss_label(pred_labeled,labels) 
     loss_unlabel = Loss_unlabel(pred_unlabel)
     loss_fake    = Loss_fake(pred_fake)
     
     loss_d       = loss_labeled + 0.5*loss_fake + 0.5*loss_unlabel
-    loss_d_v += loss_d.data.cpu().numpy().item()
+    loss_d_v += loss_d.data.cpu().numpy().item() # convert back to CPU
     loss_d.backward()
     optimizer_d.step()
     
     ####### train G ##################
     optimizer_g.zero_grad()
     adjust_lr(optimizer_g,lr_g,iters,max_iter,power)
+    
     # predict
     pred_fake    = model_d( model_g(noise) )
     loss_g    = -Loss_fake(pred_fake)
-    loss_g_v += loss_g.data.cpu().numpy().item()
+    loss_g_v += loss_g.data.cpu().numpy().item() # convert back to CPU
     loss_g.backward()
     optimizer_g.step()
     
