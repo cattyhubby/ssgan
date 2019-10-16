@@ -2,6 +2,7 @@
   the author is leilei;
   Loss functions are in here.
   分别计算 有标签真实数据损失函数、生成数据损失函数、无标签真实数据损失函数。
+  参照 https://blog.csdn.net/shenxiaolu1984/article/details/75736407
 '''
 
 def log_sum_exp(x,axis=1):
@@ -12,14 +13,14 @@ def log_sum_exp(x,axis=1):
     m = torch.max(x,dim=axis)[0]
     return m+torch.log(torch.sum(torch.exp(x-torch.unsqueeze(m,dim=axis)),dim=axis))
 
-def Loss_label(pred,label):
+def Loss_label(pred,label): # 标签真实数据损失函数
     '''
     pred: [n,c,h,w],need to transpose [n,h,w,c],then reshape [n*h*w,c] 
     label: [n,h,w] ,tensor need to numpy ,then need to reshape [n*h*w,1]
     '''
     shape = pred.shape# n c h w
     # predict before softmax
-    output_before_softmax_lab = pred.transpose(1,2).transpose(2,3).reshape([-1,shape[1]])# [n*h*w, c]
+    output_before_softmax_lab = pred.transpose(1,2).transpose(2,3).reshape([-1,shape[1]]) # [n*h*w, c]
     
     label_ = label.data.cpu().numpy().reshape([-1,])
     # l_lab before softmax
@@ -29,7 +30,7 @@ def Loss_label(pred,label):
     
     return loss_lab
 
-def Loss_fake(pred):
+def Loss_fake(pred): # 生成数据损失函数
     '''
     pred: [n,c,h,w],need to transpose [n,h,w,c],then reshape [n*h*w,c] 
     '''
@@ -41,7 +42,7 @@ def Loss_fake(pred):
     
     return loss_gen
 
-def Loss_unlabel(pred):
+def Loss_unlabel(pred): # 无标签真实数据损失函数
     '''
     pred: [n,c,h,w],need to transpose [n,h,w,c],then reshape [n*h*w,c] 
     '''
