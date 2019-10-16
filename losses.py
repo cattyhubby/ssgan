@@ -4,6 +4,9 @@
   针对D loss 分别计算 有标签真实数据损失函数、生成数据损失函数、无标签真实数据损失函数。
   参照 https://blog.csdn.net/shenxiaolu1984/article/details/75736407
   G loss的话 就是简单 - Loss_fake
+  
+  这篇code作者分类导入标签和无标签数据
+  没有把 标签生成数据损失函数loss 放进去，不然D 分类器就要k+1了， 0-k对应真实数据标签，k+1对应生成数据标签
 '''
 
 def log_sum_exp(x,axis=1):
