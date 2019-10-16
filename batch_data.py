@@ -13,7 +13,7 @@ from torch import nn
 from torch.autograd import Variable
 from torch.utils import data
 
-class Data(data.Dataset):
+class Data(data.Dataset): # for labelled data
     def __init__(self,dataset_path,transform=None,augmentation=True):
         self.hdf5=h5py.File(dataset_path,mode='r')
         self.image=self.hdf5['image']
@@ -22,7 +22,7 @@ class Data(data.Dataset):
         self.augmentation=augmentation
     def __len__(self):
         return self.image.shape[0]
-    def data_augmentation(self,image,label):
+    def data_augmentation(self,image,label): # random selection of data augmen types
         randint=random.randint(1,8)
         if randint==1:# left-right flip
             image=cv2.flip(image,1)
@@ -59,7 +59,7 @@ class data(data.Dataset): # for unlabeled
         self.augmentation=augmentation
     def __len__(self):
         return self.image.shape[0]
-    def data_augmentation(self,image):
+    def data_augmentation(self,image): # random selection of data augmentation types
         randint=random.randint(1,8)
         if randint==1:# left-right flip
             image=cv2.flip(image,1)
