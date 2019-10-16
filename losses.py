@@ -1,8 +1,9 @@
 '''
   the author is leilei;
   Loss functions are in here.
-  分别计算 有标签真实数据损失函数、生成数据损失函数、无标签真实数据损失函数。
+  针对D loss 分别计算 有标签真实数据损失函数、生成数据损失函数、无标签真实数据损失函数。
   参照 https://blog.csdn.net/shenxiaolu1984/article/details/75736407
+  G loss的话 就是简单 - Loss_fake
 '''
 
 def log_sum_exp(x,axis=1):
