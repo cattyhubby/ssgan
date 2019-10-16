@@ -9,7 +9,7 @@ class Generator(nn.Module):
         super().__init__()
         self.linear = nn.Sequential(nn.Linear(10*10,768*16*16),nn.ReLU(inplace=True))
         # reshape
-        self.deconv1 = nn.Sequential(nn.ConvTranspose2d(768,384,3,2,1,1),
+        self.deconv1 = nn.Sequential(nn.ConvTranspose2d(768,384,3,2,1,1), # for convtrans: input channel, output channel, kernel size, stride, padding, bias
                                      nn.BatchNorm2d(384),nn.ReLU(inplace=True))#32*32
         self.deconv2 = nn.Sequential(nn.ConvTranspose2d(384,256,3,2,1,1),
                                      nn.BatchNorm2d(256),nn.ReLU(inplace=True))#64*64
